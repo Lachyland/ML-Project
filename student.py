@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
@@ -103,11 +102,6 @@ st.write(f"Linear Regression: MSE = {mse_lr:.2f}, R² = {r2_lr:.2f}")
 
 # Create a dataframe for model accuracy scores
 accuracy_df = pd.DataFrame(list(accuracy_scores.items()), columns=["Model", "Accuracy"])
-
-# Plot the accuracy comparison
-fig, ax = plt.subplots()
-sns.barplot(x="Accuracy", y="Model", data=accuracy_df, ax=ax, palette="viridis")
-st.pyplot(fig)
 
 # Display model comparison metrics
 st.write(accuracy_df)
