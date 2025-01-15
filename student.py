@@ -18,9 +18,10 @@ categorical_columns = [
 ]
 
 # Encode categorical fields to match training
-le = LabelEncoder()
+le_dict = {}
 for col in categorical_columns:
-    df[col] = le.fit_transform(df[col])
+    le_dict[col] = LabelEncoder()
+    df[col] = le_dict[col].fit_transform(df[col])
 
 # Features (X) for training the model
 X = df.drop('Exam_Score', axis=1)
@@ -35,6 +36,10 @@ st.write("""
 # Survey inputs for the user
 hours_studied = st.number_input("Hours Studied (per week)", min_value=0, max_value=168, step=1)
 attendance = st.slider("Attendance (%)", min_value=0, max_value=100, step=1)
+sleep_hours = st.number_input("Sleep Hours (per night)", min_value=0, max_value=24, step=1)
+previous_scores = st.number_input("Previous Scores", min_value=0, max_value=100, step=1)
+tutoring_sessions = st.number_input("Tutoring Sessions (per month)", min_value=0, max_value=31, step=1)
+physical_activity = st.number_input("Physical Activity (hours per week)", min_value=0, max_value=168, step=1)
 
 # Categorical fields for the user to select
 parental_involvement = st.selectbox('Parental Involvement', ['Low', 'Medium', 'High'])
@@ -55,6 +60,10 @@ gender = st.selectbox('Gender', ['Male', 'Female'])
 inputs = pd.DataFrame([{
     'Hours_Studied': hours_studied,
     'Attendance': attendance,
+    'Sleep_Hours': sleep_hours,
+    'Previous_Scores': previous_scores,
+    'Tutoring_Sessions': tutoring_sessions,
+    'Physical_Activity': physical_activity,
     'Parental_Involvement': parental_involvement,
     'Access_to_Resources': access_to_resources,
     'Extracurricular_Activities': extracurricular_activities,
@@ -72,7 +81,7 @@ inputs = pd.DataFrame([{
 
 # Encode categorical columns for prediction to match training data
 for col in categorical_columns:
-    inputs[col] = le.fit_transform(inputs[col])
+    inputs[col] = le_dict[col].transform(inputs[col])
 
 # Align input dataframe columns with the model's expected features
 input_df = inputs[X.columns]  # Ensure the same columns as the training data
