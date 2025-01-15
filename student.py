@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
-from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -12,44 +11,55 @@ from sklearn.svm import SVC
 
 st.write("""
 # Student Performance Prediction App
-This app predicts student exam scores and compares classification model performances!
+This app predicts **student performance** and evaluates various machine learning models!
 """)
 
-st.sidebar.header('Dataset Upload')
-uploaded_file = st.sidebar.file_uploader("StudentPerformanceFactors.csv", type=["csv"])
+# Upload file
+uploaded_file = st.file_uploader("Upload your CSV file", type="csv")
 
-if uploaded_file is not None:
+if uploaded_file:
     df = pd.read_csv(uploaded_file)
-
-    st.subheader('Dataset Preview')
+    
+    st.subheader("Dataset Preview")
     st.write(df.head())
+    
+    # Preprocessing
+    st.sidebar.header("Categorical Columns")
+    categorical_columns = st.sidebar.multiselect(
+        "Select categorical columns",
+        options=df.columns,
+        default=[
+            'Parental_Involvement', 'Access_to_Resources', 'Extracurricular_Activities',
+            'Motivation_Level', 'Internet_Access', 'Family_Income', 'Teacher_Quality',
+            'School_Type', 'Peer_Influence', 'Learning_Disabilities',
+            'Parental_Education_Level', 'Distance_from_Home', 'Gender'
+        ]
+    )
 
-    categorical_columns = [
-        'Parental_Involvement', 'Access_to_Resources', 'Extracurricular_Activities', 
-        'Motivation_Level', 'Internet_Access', 'Family_Income', 'Teacher_Quality', 
-        'School_Type', 'Peer_Influence', 'Learning_Disabilities', 
-        'Parental_Education_Level', 'Distance_from_Home', 'Gender'
-    ]
-    df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
+    if categorical_columns:
+        df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
+
+    # Features and target
     X = df.drop('Exam_Score', axis=1).to_numpy()
     y = df['Exam_Score'].to_numpy()
 
+    # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, random_state=314)
 
-    # Linear Regression Model
+    # Linear Regression
+    st.subheader("Linear Regression")
     model = LinearRegression()
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-
-    st.subheader('Linear Regression Model Evaluation')
     st.write(f"Mean Squared Error (MSE): {mse:.2f}")
     st.write(f"R-Squared (R2): {r2:.2f}")
 
-    # Classification Models
-    classifiers = {
-        "Logistic Regression": LogisticRegression(max_iter=200),
+    # Other Models
+    st.subheader("Other Models Accuracy")
+    models = {
+        "Logistic Regression": LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=200),
         "Linear Discriminant Analysis": LinearDiscriminantAnalysis(),
         "K-Nearest Neighbors": KNeighborsClassifier(),
         "Decision Tree": DecisionTreeClassifier(),
@@ -59,14 +69,11 @@ if uploaded_file is not None:
 
     accuracy_scores = {}
 
-    for name, clf in classifiers.items():
+    for name, clf in models.items():
         clf.fit(X_train, y_train)
-        y_pred = clf.predict(X_test)
-        accuracy_scores[name] = accuracy_score(y_test, y_pred)
+        accuracy_scores[name] = accuracy_score(y_test, clf.predict(X_test))
 
-    st.subheader('Classification Model Accuracies')
     accuracy_df = pd.DataFrame(list(accuracy_scores.items()), columns=["Model", "Accuracy"])
     st.write(accuracy_df)
-
 else:
-    st.write("StudentPerformanceFactors.csv")
+    st.warning("Please upload a CSV file to proceed.")
