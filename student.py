@@ -1,18 +1,15 @@
 import streamlit as st
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import LabelEncoder
 import joblib
 
-# Load the model (assuming the model is saved as 'studentP.pkl')
+# Load the model
 model = joblib.load('studentP.pkl')
 
 # Load the dataset to get column info (not training here)
 df = pd.read_csv("StudentPerformanceFactors.csv")
 
-# Preprocessing
+# Preprocessing - ensure this matches the training process
 categorical_columns = [
     'Parental_Involvement', 'Access_to_Resources', 'Extracurricular_Activities', 
     'Motivation_Level', 'Internet_Access', 'Family_Income', 'Teacher_Quality', 
@@ -20,13 +17,13 @@ categorical_columns = [
     'Parental_Education_Level', 'Distance_from_Home', 'Gender'
 ]
 
-# Encode categorical features as the model expects them to be preprocessed (dummy variables)
+# Encode categorical fields to match training
+le = LabelEncoder()
 for col in categorical_columns:
-    le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
 
-# Features and target (using only the necessary features)
-X = df.drop('Exam_Score', axis=1).to_numpy()
+# Features (X) for training the model
+X = df.drop('Exam_Score', axis=1)
 
 # App setup
 st.title("Student Performance Prediction")
@@ -54,7 +51,7 @@ parental_education_level = st.selectbox('Parental Education Level', ['High Schoo
 distance_from_home = st.selectbox('Distance from Home', ['Near', 'Moderate', 'Far'])
 gender = st.selectbox('Gender', ['Male', 'Female'])
 
-# Process categorical inputs as the model expects them (like encoding)
+# Create the input dataframe for prediction
 inputs = pd.DataFrame([{
     'Hours_Studied': hours_studied,
     'Attendance': attendance,
@@ -73,14 +70,14 @@ inputs = pd.DataFrame([{
     'Gender': gender
 }])
 
-# Encode categorical columns for prediction (like the training data)
+# Encode categorical columns for prediction to match training data
 for col in categorical_columns:
     inputs[col] = le.fit_transform(inputs[col])
 
-# Prepare the input data for prediction (convert to numpy array)
-X_input = inputs.to_numpy()
+# Align input dataframe columns with the model's expected features
+input_df = inputs[X.columns]  # Ensure the same columns as the training data
 
-# Prediction
+# Make a prediction
 if st.button('Predict Exam Score'):
-    prediction = model.predict(X_input)
-    st.write(f"Predicted Exam Score: {prediction[0]:.2f}")
+    prediction = model.predict(input_df)[0]
+    st.subheader(f"Predicted Exam Score: {prediction:.2f}")
