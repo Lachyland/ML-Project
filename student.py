@@ -6,8 +6,12 @@ import numpy as np
 # Load the pre-trained model
 model = joblib.load('studentP.pkl')
 
-# Set the path to your dataset or CSV
-file_path = 'student_data.csv'  # Adjust the path to your data file if needed
+# Assuming you have the original dataset used for training (to get the feature names)
+df = pd.read_csv('student_data.csv')  # Replace with your actual training data path
+
+# Get the feature names used for training the model
+# This assumes you know which columns were used as features during training
+train_columns = df.drop(columns=['Exam_Score']).columns
 
 st.write("""
 # Student Performance Prediction App
@@ -61,11 +65,10 @@ input_data = {
     'Gender': gender
 }
 
-# Convert categorical data into one-hot encoded format
+# Convert the input data to a DataFrame
 input_df = pd.DataFrame([input_data])
 
-# Handle one-hot encoding for categorical columns based on your original model training
-# Assuming 'get_dummies' was used for encoding in the training model
+# Handle one-hot encoding for categorical columns based on the model's original training setup
 categorical_columns = ['Parental_Involvement', 'Access_to_Resources', 'Extracurricular_Activities',
                        'Motivation_Level', 'Internet_Access', 'Family_Income', 'Teacher_Quality',
                        'School_Type', 'Peer_Influence', 'Learning_Disabilities', 'Parental_Education_Level',
@@ -74,12 +77,13 @@ categorical_columns = ['Parental_Involvement', 'Access_to_Resources', 'Extracurr
 input_df = pd.get_dummies(input_df, columns=categorical_columns, drop_first=True)
 
 # Ensure the input matches the columns of the trained model
-# You might need to add missing columns if necessary
-missing_cols = set(X.columns) - set(input_df.columns)
-for col in missing_cols:
-    input_df[col] = 0  # Add the missing columns with default value 0
+# Add missing columns if necessary, filling with zeros (this should match the model's input feature set)
+for col in train_columns:
+    if col not in input_df.columns:
+        input_df[col] = 0
 
-input_df = input_df[X.columns]  # Align the input dataframe with the model features
+# Reorder the columns to match the trained model's feature set
+input_df = input_df[train_columns]
 
 # Make a prediction
 prediction = model.predict(input_df)[0]
