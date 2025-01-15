@@ -69,20 +69,51 @@ st.write(df.head())
 # Sidebar for user input
 st.sidebar.header("Input Features for Prediction")
 
-# Collect user input
-motivation_level = st.sidebar.slider("Motivation Level", 1, 10, 5)
-family_income = st.sidebar.slider("Family Income", 1000, 50000, 25000)
+# Collect user input for prediction
+hours_studied = st.sidebar.slider("Hours Studied (per week)", 0, 60, 15)
+attendance = st.sidebar.slider("Attendance (%)", 0, 100, 85)
+parental_involvement = st.sidebar.selectbox("Parental Involvement", ["Low", "Medium", "High"])
+access_to_resources = st.sidebar.selectbox("Access to Resources", ["Low", "Medium", "High"])
+extracurricular_activities = st.sidebar.selectbox("Extracurricular Activities", ["Yes", "No"])
+sleep_hours = st.sidebar.slider("Sleep Hours (per night)", 0, 12, 8)
+previous_scores = st.sidebar.slider("Previous Scores", 0, 100, 70)
+motivation_level = st.sidebar.selectbox("Motivation Level", ["Low", "Medium", "High"])
 internet_access = st.sidebar.selectbox("Internet Access", ["Yes", "No"])
+tutoring_sessions = st.sidebar.slider("Tutoring Sessions (per month)", 0, 10, 2)
+family_income = st.sidebar.selectbox("Family Income", ["Low", "Medium", "High"])
+teacher_quality = st.sidebar.selectbox("Teacher Quality", ["Low", "Medium", "High"])
+school_type = st.sidebar.selectbox("School Type", ["Public", "Private"])
+peer_influence = st.sidebar.selectbox("Peer Influence", ["Positive", "Neutral", "Negative"])
+physical_activity = st.sidebar.slider("Physical Activity (per week, hours)", 0, 20, 5)
+learning_disabilities = st.sidebar.selectbox("Learning Disabilities", ["Yes", "No"])
+parental_education_level = st.sidebar.selectbox("Parental Education Level", ["High School", "College", "Postgraduate"])
+distance_from_home = st.sidebar.selectbox("Distance from Home", ["Near", "Moderate", "Far"])
 gender = st.sidebar.selectbox("Gender", ["Male", "Female"])
 
-# Encode categorical inputs
+# Prepare input data for prediction
 input_data = {
+    "Hours_Studied": hours_studied,
+    "Attendance": attendance,
+    "Parental_Involvement": parental_involvement,
+    "Access_to_Resources": access_to_resources,
+    "Extracurricular_Activities": extracurricular_activities,
+    "Sleep_Hours": sleep_hours,
+    "Previous_Scores": previous_scores,
     "Motivation_Level": motivation_level,
+    "Internet_Access": internet_access,
+    "Tutoring_Sessions": tutoring_sessions,
     "Family_Income": family_income,
-    "Internet_Access": 1 if internet_access == "Yes" else 0,
-    "Gender_Female": 1 if gender == "Female" else 0,
+    "Teacher_Quality": teacher_quality,
+    "School_Type": school_type,
+    "Peer_Influence": peer_influence,
+    "Physical_Activity": physical_activity,
+    "Learning_Disabilities": learning_disabilities,
+    "Parental_Education_Level": parental_education_level,
+    "Distance_from_Home": distance_from_home,
+    "Gender": gender
 }
 
+# Convert categorical columns to numerical (dummy encoding)
 input_df = pd.DataFrame([input_data])
 input_df_encoded = pd.get_dummies(input_df)
 
@@ -105,10 +136,3 @@ accuracy_df = pd.DataFrame(list(accuracy_scores.items()), columns=["Model", "Acc
 
 # Display model comparison metrics
 st.write(accuracy_df)
-
-# Show the model's MSE and R² for Linear Regression
-st.write("""
-### Performance Summary for Linear Regression:
-- **Mean Squared Error (MSE)**: The MSE measures the average squared difference between the predicted and actual values. Lower values are better.
-- **R-Squared (R²)**: R² measures how well the model's predictions match the actual data. Higher values indicate better performance.
-""")
