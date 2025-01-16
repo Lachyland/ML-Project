@@ -1,6 +1,7 @@
 import streamlit as st
 import joblib
 import pandas as pd
+import numpy as np
 
 # Load the pre-trained model
 model = joblib.load('studentP.pkl')
@@ -17,9 +18,13 @@ def process_data(data):
     
     # Convert input to DataFrame
     df = pd.DataFrame(data, index=[0])
+    st.write("DataFrame after initial conversion:")
+    st.write(df)
     
     # Convert categorical columns to dummy variables
     df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
+    st.write("DataFrame after get_dummies:")
+    st.write(df)
     
     # Ensure the DataFrame has the same columns as the model
     try:
@@ -33,6 +38,10 @@ def process_data(data):
     
     # Reorder columns to match the training data structure
     df = df[model_columns]
+    
+    # Debug statement to check columns order
+    st.write("DataFrame after reordering columns:")
+    st.write(df)
     
     # Return the DataFrame directly
     return df
@@ -96,7 +105,7 @@ if st.sidebar.button("Predict Exam Score"):
         st.write("Processed Data:")
         st.write(processed_data)
         st.write(f"Processed Data Type: {type(processed_data)}")
-        
+
         # Ensure processed_data is a DataFrame
         if not isinstance(processed_data, pd.DataFrame):
             raise TypeError("Processed data is not a DataFrame. Please check the input processing.")
