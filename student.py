@@ -8,7 +8,7 @@ model = joblib.load('studentP.pkl')
 
 # Define function to process the input data
 def process_data(data):
-    # Convert categorical inputs to dummy variables
+    # Define categorical columns
     categorical_columns = [
         'Parental_Involvement', 'Access_to_Resources', 'Extracurricular_Activities',
         'Motivation_Level', 'Internet_Access', 'Family_Income', 'Teacher_Quality',
@@ -16,18 +16,18 @@ def process_data(data):
         'Parental_Education_Level', 'Distance_from_Home', 'Gender'
     ]
     
-    # Convert categorical features using one-hot encoding
+    # Convert categorical inputs to dummy variables
     df = pd.DataFrame(data, index=[0])
     df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
     
-    # Ensure all features have the same columns as in the training data
-    required_columns = df.columns
-    for column in model.feature_names_in_:
-        if column not in required_columns:
-            df[column] = 0  # Add missing columns with 0 values
-
-    # Reorder columns to match the training data
-    df = df[model.feature_names_in_]
+    # Ensure the data has the same columns as the model's training data
+    model_columns = model.feature_names_in_
+    for col in model_columns:
+        if col not in df.columns:
+            df[col] = 0  # Add missing columns with 0 values
+    
+    # Reorder columns to match the order the model expects
+    df = df[model_columns]
     
     return df.to_numpy()
 
