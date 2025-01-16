@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 
 # Load the pre-trained model
-model = joblib.load('studentP.pkl')
+model = joblib.load('studentPredic.pkl')
 
 # Define function to process the input data
 def process_data(data):
