@@ -88,20 +88,9 @@ if st.sidebar.button("Predict Exam Score"):
         'Gender': gender
     }
     
+    # Process the data and make predictions
     try:
-        # Process the data
         processed_data = process_data(input_data)
-        
-        # Debug processed data
-        st.write("Processed Data:")
-        st.write(processed_data)
-        st.write(f"Processed Data Type: {type(processed_data)}")
-        
-        # Ensure processed_data is a DataFrame
-        if not isinstance(processed_data, pd.DataFrame):
-            raise TypeError("Processed data is not a DataFrame. Please check the input processing.")
-        
-        # Predict using the model
         predicted_score = model.predict(processed_data)
         st.subheader(f"Predicted Exam Score: {predicted_score[0]:.2f}")
     except Exception as e:
