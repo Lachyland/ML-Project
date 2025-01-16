@@ -1,56 +1,65 @@
 import streamlit as st
+import joblib
 import pandas as pd
 import numpy as np
-import joblib
-from sklearn.preprocessing import LabelEncoder
 
-# Load the trained model
+# Load the pre-trained model
 model = joblib.load('studentP.pkl')
 
-# Function to preprocess input data
-def preprocess_data(input_data):
-    # Handle categorical variables (encode them)
+# Define function to process the input data
+def process_data(data):
+    # Convert categorical inputs to dummy variables
     categorical_columns = [
-        'Parental_Involvement', 'Access_to_Resources', 'Extracurricular_Activities', 
-        'Motivation_Level', 'Internet_Access', 'Family_Income', 'Teacher_Quality', 
-        'School_Type', 'Peer_Influence', 'Learning_Disabilities', 
+        'Parental_Involvement', 'Access_to_Resources', 'Extracurricular_Activities',
+        'Motivation_Level', 'Internet_Access', 'Family_Income', 'Teacher_Quality',
+        'School_Type', 'Peer_Influence', 'Learning_Disabilities',
         'Parental_Education_Level', 'Distance_from_Home', 'Gender'
     ]
     
-    # Label encoding for categorical columns
-    for column in categorical_columns:
-        le = LabelEncoder()
-        input_data[column] = le.fit_transform(input_data[column])
+    # Convert categorical features using one-hot encoding
+    df = pd.DataFrame(data, index=[0])
+    df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
     
-    # Convert the input data to a numpy array and return it
-    return input_data.to_numpy()
+    # Ensure all features have the same columns as in the training data
+    required_columns = df.columns
+    for column in model.feature_names_in_:
+        if column not in required_columns:
+            df[column] = 0  # Add missing columns with 0 values
 
-# Function to get the input data from the user
-def get_user_input():
-    # Get input from the user
-    st.title('Student Exam Score Predictor')
+    # Reorder columns to match the training data
+    df = df[model.feature_names_in_]
     
-    hours_studied = st.slider('Hours Studied', 0, 168, 10)
-    attendance = st.slider('Attendance Percentage', 0, 100, 85)
-    parental_involvement = st.selectbox('Parental Involvement', ['Low', 'Medium', 'High'])
-    access_to_resources = st.selectbox('Access to Resources', ['Low', 'Medium', 'High'])
-    extracurricular_activities = st.selectbox('Extracurricular Activities', ['Yes', 'No'])
-    sleep_hours = st.slider('Sleep Hours', 0, 24, 7)
-    previous_scores = st.slider('Previous Exam Scores', 0, 100, 60)
-    motivation_level = st.selectbox('Motivation Level', ['Low', 'Medium', 'High'])
-    internet_access = st.selectbox('Internet Access', ['Yes', 'No'])
-    tutoring_sessions = st.slider('Tutoring Sessions per Month', 0, 10, 2)
-    family_income = st.selectbox('Family Income', ['Low', 'Medium', 'High'])
-    teacher_quality = st.selectbox('Teacher Quality', ['Low', 'Medium', 'High'])
-    school_type = st.selectbox('School Type', ['Public', 'Private'])
-    peer_influence = st.selectbox('Peer Influence', ['Positive', 'Neutral', 'Negative'])
-    physical_activity = st.slider('Physical Activity Hours per Week', 0, 20, 3)
-    learning_disabilities = st.selectbox('Learning Disabilities', ['Yes', 'No'])
-    parental_education_level = st.selectbox('Parental Education Level', ['High School', 'College', 'Postgraduate'])
-    distance_from_home = st.selectbox('Distance from Home', ['Near', 'Moderate', 'Far'])
-    gender = st.selectbox('Gender', ['Male', 'Female'])
-    
-    # Store the input data in a dictionary
+    return df.to_numpy()
+
+# Streamlit User Interface
+st.title("Student Exam Score Prediction")
+
+st.sidebar.header("Enter Student Data")
+
+# Inputs
+hours_studied = st.sidebar.number_input("Hours Studied", min_value=0, max_value=168, value=10)
+attendance = st.sidebar.number_input("Attendance (%)", min_value=0, max_value=100, value=80)
+parental_involvement = st.sidebar.selectbox("Parental Involvement", ["Low", "Medium", "High"])
+access_to_resources = st.sidebar.selectbox("Access to Resources", ["Low", "Medium", "High"])
+extracurricular_activities = st.sidebar.selectbox("Extracurricular Activities", ["Yes", "No"])
+sleep_hours = st.sidebar.number_input("Sleep Hours", min_value=0, max_value=24, value=7)
+previous_scores = st.sidebar.number_input("Previous Scores", min_value=0, max_value=100, value=60)
+motivation_level = st.sidebar.selectbox("Motivation Level", ["Low", "Medium", "High"])
+internet_access = st.sidebar.selectbox("Internet Access", ["Yes", "No"])
+tutoring_sessions = st.sidebar.number_input("Tutoring Sessions (per month)", min_value=0, max_value=30, value=2)
+family_income = st.sidebar.selectbox("Family Income", ["Low", "Medium", "High"])
+teacher_quality = st.sidebar.selectbox("Teacher Quality", ["Low", "Medium", "High"])
+school_type = st.sidebar.selectbox("School Type", ["Public", "Private"])
+peer_influence = st.sidebar.selectbox("Peer Influence", ["Positive", "Neutral", "Negative"])
+physical_activity = st.sidebar.number_input("Physical Activity (hrs/week)", min_value=0, max_value=168, value=5)
+learning_disabilities = st.sidebar.selectbox("Learning Disabilities", ["Yes", "No"])
+parental_education_level = st.sidebar.selectbox("Parental Education Level", ["High School", "College", "Postgraduate"])
+distance_from_home = st.sidebar.selectbox("Distance from Home", ["Near", "Moderate", "Far"])
+gender = st.sidebar.selectbox("Gender", ["Male", "Female"])
+
+# Button for prediction
+if st.sidebar.button("Predict Exam Score"):
+    # Collect input data
     input_data = {
         'Hours_Studied': hours_studied,
         'Attendance': attendance,
@@ -73,22 +82,9 @@ def get_user_input():
         'Gender': gender
     }
     
-    # Convert the input dictionary into a dataframe
-    input_df = pd.DataFrame([input_data])
+    # Process the data and make predictions
+    processed_data = process_data(input_data)
+    predicted_score = model.predict(processed_data)
     
-    return input_df
-
-# Make predictions using the trained model
-def predict(input_df):
-    processed_input = preprocess_data(input_df)
-    prediction = model.predict(processed_input)
-    return prediction[0]
-
-# Display the user input
-input_df = get_user_input()
-st.write("Input data:", input_df)
-
-# Make predictions
-if st.button('Predict Exam Score'):
-    prediction = predict(input_df)
-    st.write(f"Predicted Exam Score: {prediction:.2f}")
+    # Show the predicted exam score
+    st.subheader(f"Predicted Exam Score: {predicted_score[0]:.2f}")
