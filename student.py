@@ -16,9 +16,26 @@ def process_data(data):
         'Parental_Education_Level', 'Distance_from_Home', 'Gender'
     ]
     
-    # Convert categorical inputs to dummy variables
+    # Convert input to DataFrame
     df = pd.DataFrame(data, index=[0])
+    
+    # Convert categorical columns to dummy variables
     df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
+    
+    # Ensure the DataFrame has the same columns as the model
+    try:
+        model_columns = model.feature_names_in_
+    except AttributeError:
+        raise AttributeError("The model is missing the 'feature_names_in_' attribute.")
+    
+    for col in model_columns:
+        if col not in df.columns:
+            df[col] = 0  # Add missing columns with zero values
+    
+    # Reorder columns to match the training data structure
+    df = df[model_columns]
+    return df
+
 
 # Streamlit User Interface
 st.title("Student Exam Score Prediction")
