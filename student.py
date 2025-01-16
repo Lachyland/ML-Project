@@ -1,6 +1,7 @@
 import streamlit as st
 import joblib
 import pandas as pd
+import numpy as np
 
 # Load the pre-trained model
 model = joblib.load('studentPredic.pkl')
@@ -33,9 +34,8 @@ def process_data(data):
     
     # Reorder columns to match the training data structure
     df = df[model_columns]
-    
-    # Return the DataFrame directly
     return df
+
 
 # Streamlit User Interface
 st.title("Student Exam Score Prediction")
@@ -89,9 +89,8 @@ if st.sidebar.button("Predict Exam Score"):
     }
     
     # Process the data and make predictions
-    try:
-        processed_data = process_data(input_data)
-        predicted_score = model.predict(processed_data)
-        st.subheader(f"Predicted Exam Score: {predicted_score[0]:.2f}")
-    except Exception as e:
-        st.error(f"Prediction failed: {e}")
+    processed_data = process_data(input_data)
+    predicted_score = model.predict(processed_data)
+    
+    # Show the predicted exam score
+    st.subheader(f"Predicted Exam Score: {predicted_score[0]:.2f}")
