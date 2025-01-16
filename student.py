@@ -19,17 +19,6 @@ def process_data(data):
     # Convert categorical inputs to dummy variables
     df = pd.DataFrame(data, index=[0])
     df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
-    
-    # Ensure the data has the same columns as the model's training data
-    model_columns = model.feature_names_in_
-    for col in model_columns:
-        if col not in df.columns:
-            df[col] = 0  # Add missing columns with 0 values
-    
-    # Reorder columns to match the order the model expects
-    df = df[model_columns]
-    
-    return df.to_numpy()
 
 # Streamlit User Interface
 st.title("Student Exam Score Prediction")
